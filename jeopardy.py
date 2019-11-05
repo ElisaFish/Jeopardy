@@ -3,6 +3,7 @@ import string
 import re
 import numpy as np
 import datetime
+import re
 
 pd.set_option('display.max_colwidth', -1)
 pd.set_option('display.max_columns', None)
@@ -42,19 +43,22 @@ class Jeopardy:
             key = ' ' + word.lower() + suffix
             search_terms.append(key)
 
+        search_terms_regex = [\sking(\D|\s)]
         return search_terms
 
     def filter_questions(self, word_list, data):
         search_data = data
         #word_list = ['King', 'England', 'kind', 'random', 'words', 'make', 'list', 'long', 'happy', 'sad', 'emotions', 'scared', 'want', 'live', 'therapy', 'Yoni', 'Eliza', 'room', 'table', 'tensor', 'anxiety', 'codecamp', 'fun', 'programming', 'movies', 'party', 'show', 'alert', 'cup', 'coffee', 'mug', 'bagels', 'cos', 'painting', 'art', 'much']
-        for word in word_list:
-            search_terms = self.format_word(word)
-            filtered_data = search_data[search_data.apply(lambda row: any([term in row.question.lower() for term in search_terms]), axis=1)].reset_index()
-            search_data = filtered_data
+        filtered_data = search_data[search_data.apply(lambda row: all([any([term in row.question.lower() for term in self.format_word(word)]) for word in word_list]), axis=1)].reset_index()
+        #for word in word_list:
+        #    search_terms = self.format_word(word)
+        #    filtered_data = search_data[search_data.apply(lambda row: any([term in row.question.lower() for term in search_terms]), axis=1)].reset_index()
+        #    search_data = filtered_data
         #filtered_data = jeopardy_data[jeopardy_data.apply(lambda row: [jeopardy_data.question.str.contains(all(word for word in word_list))])]
         #filtered_data = jeopardy_data[jeopardy_data.apply(lambda row: all(word in row.question for word in word_list))]
 
-        return search_data
+        #return search_data
+        return filtered_data
 
 # make time_frames work with function
     def question_time_filter(self, word_list, time_frames):
@@ -88,7 +92,9 @@ print(filtered_data.value.mean())
 ### Additional Questions
 #print(jd.jeopardy_data.air_date.head())
 
-
-category_by_round = jd.jeopardy_data.groupby(['round', 'category']).question.count().reset_index()
+category_by_round = jd.jeopardy_data.groupby(['category', 'round']).question.count().fillna(0).reset_index()
 #category_by_round = jd.jeopardy_data.pivot(index = 'round', columns = 'category', values = 'question')
+cat_round_pivot = category_by_round.pivot(index = 'category', columns = 'round', values = 'question').fillna(0).reset_index()
 print(category_by_round)
+print(cat_round_pivot)
+print(cat_round_pivot[cat_round_pivot.category == 'LITERATURE'])
