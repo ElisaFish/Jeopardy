@@ -1,2 +1,2 @@
 # Jeopardy
-Codecademy Pandas project
+Pandas project, game statistics
